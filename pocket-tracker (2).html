@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="el"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pocket Tracker</title>
+<style>
+:root{--bg:#0a0a0c;--card:#141417;--bd:#25252b;--tx:#f4f4f5;--mu:#8b8b96;--ac:#8b5cf6;--ok:#22c55e;--wa:#f59e0b;--er:#ef4444;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:dark}
+:root[data-theme=light]{--bg:#f6f6f8;--card:#fff;--bd:#e4e4e9;--tx:#16161a;--mu:#6b6b76;color-scheme:light}
+*{box-sizing:border-box;margin:0}html,body{background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:520px;margin:0 auto;padding:16px 16px 110px}
+h1{font-size:22px;margin:4px 0 14px}h2{font-size:13px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid .card{margin:0}
+.lbl{color:var(--mu);font-size:12px}.big{font-size:21px;font-weight:700;margin-top:2px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}.row:last-child{border:0}
+.ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none}
+.grow{flex:1;min-width:0}.grow b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--ok)}.neg{color:var(--er)}.mu{color:var(--mu);font-size:12px}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;border-radius:9px;transition:width .4s}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));z-index:5}
+nav button{background:none;border:0;color:var(--mu);font:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;padding:4px;min-height:44px;cursor:pointer}
+nav button.on{color:var(--ac)}nav span{font-size:20px}nav .sp{flex:1}
+.fab{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:58px;height:58px;border-radius:50%;border:0;background:var(--ac);color:#fff;font-size:30px;box-shadow:0 6px 20px #8b5cf688;z-index:6;cursor:pointer;transition:transform .15s}.fab:active{transform:translateX(-50%) scale(.92)}
+input,select,button.b{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:11px;width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+button.b{background:var(--ac);border:0;color:#fff;font-weight:600;cursor:pointer}button.b.g{background:var(--card);color:var(--tx);border:1px solid var(--bd)}button.b.d{background:none;color:var(--er);border:1px solid var(--er)}
+.ov{position:fixed;inset:0;background:#0009;z-index:10;display:flex;align-items:flex-end;justify-content:center;animation:f .2s}
+.sh{background:var(--card);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:u .25s}
+@keyframes u{from{transform:translateY(40px);opacity:0}}@keyframes f{from{opacity:0}}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);font:inherit;font-weight:600;cursor:pointer}.seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.amt{font-size:34px;font-weight:700;text-align:center;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{padding:8px 10px;border-radius:20px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit;font-size:13px;cursor:pointer}.chip.on{border-color:var(--ac);background:#8b5cf633}
+.f{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 16px;border-radius:12px;z-index:20;font-weight:600}
+.emp{text-align:center;padding:30px 10px;color:var(--mu)}.emp div{font-size:40px}.emp button{margin-top:12px;width:auto;padding:11px 20px}
+.ban{font-size:12px;padding:8px 12px;border-radius:12px;background:#f59e0b22;color:var(--wa);margin-bottom:12px}
+.cr{font-size:11px;letter-spacing:.08em;color:var(--mu);opacity:.55;margin:2px 0 6px}
+</style></head><body>
+<main id="app"></main><div id="ov"></div>
+<script>
+const CATS=[
+['food','Φαγητό & Καφέδες','☕','#f59e0b','e',['καφ','φαγητ','εστιατ','pizza','γυρο','σουβλ','delivery','μπυρ']],
+['groc','Σούπερ Μάρκετ','🛒','#22c55e','e',['σουπερ','μασουτ','σκλαβεν','λιδλ','lidl','μανάβ','μανab']],
+['trans','Μεταφορές','🚌','#38bdf8','e',['εισιτ','ταξι','μετρο','λεωφ','uber']],
+['fuel','Καύσιμα','⛽','#ef4444','e',['βενζ','καυσιμ','πετρελ']],
+['home','Σπίτι & Λογαριασμοί','🏠','#a78bfa','e',['ρευμα','νερο','ενοικ','λογαριασμ','δεη','internet','ιντερνετ']],
+['shop','Αγορές','🛍️','#ec4899','e',['ρουχα','παπουτσ','αγορα','amazon','skroutz']],
+['fun','Ψυχαγωγία','🎬','#f97316','e',['σινεμα','ταινι','μπαρ','ποτο','συναυλ','παιχν']],
+['health','Υγεία','💊','#14b8a6','e',['φαρμακ','γιατρ','οδοντ']],
+['subs','Συνδρομές','🔁','#6366f1','e',['netflix','spotify','συνδρομ','youtube']],
+['trip','Ταξίδια','✈️','#06b6d4','e',['ξενοδοχ','πτηση','αεροπ','ταξιδι','airbnb']],
+['oth','Άλλα','📦','#94a3b8','e',[]],
+['sal','Μισθός','💼','#22c55e','i',['μισθ']],
+['free','Freelance','💻','#10b981','i',['freelance','έργο','εργο']],
+['inv','Επενδύσεις','📈','#84cc16','i',['μερισμα','επενδυ']],
+['gift','Δώρα','🎁','#f472b6','i',['δωρο']],
+['othi','Άλλα έσοδα','➕','#94a3b8','i',[]]
+].map(a=>({id:a[0],n:a[1],i:a[2],c:a[3],t:a[4],k:a[5]}));
+const PMS=['Κάρτα','Μετρητά','Τραπεζική μεταφορά'];
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cat=id=>CATS.find(c=>c.id===id)||CATS[10];
+const eur=c=>(c/100).toLocaleString('el-GR',{style:'currency',currency:'EUR'});
+const pad=n=>String(n).padStart(2,'0');
+const isoLocal=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const mkey=d=>d.slice(0,7);
+const curM=()=>mkey(isoLocal(new Date()));
+const addM=(k,n)=>{const [y,m]=k.split('-').map(Number);const d=new Date(y,m-1+n,1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`};
+const mname=k=>{const [y,m]=k.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('el-GR',{month:'long',year:'numeric'})};
+const uid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random());
+const parseAmt=s=>{const m=String(s).replace(/\s/g,'').match(/(\d+(?:[.,]\d{1,2})?)/);return m?Math.round(parseFloat(m[1].replace(',','.'))*100):0};
+
+let S={tab:'home',tx:[],budget:0,cb:{},theme:'dark',last:{cat:'food',pm:'Κάρτα'},q:'',ft:'all',fc:'all',sort:'date',range:3,ok:true,user:null,sess:null,pend:[],mig:false,err:''};
+try{const r=localStorage.getItem('pt1');if(r)Object.assign(S,JSON.parse(r))}catch(e){}
+function save(){try{localStorage.setItem('pt1',JSON.stringify(S));S.ok=true}catch(e){S.ok=false}}
+function applyTheme(){const t=S.theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):S.theme;document.documentElement.dataset.theme=t}
+const inM=(k)=>S.tx.filter(t=>mkey(t.d)===k);
+const sum=(a,type)=>a.filter(t=>t.type===type).reduce((s,t)=>s+t.a,0);
+const byCat=a=>{const m={};a.filter(t=>t.type==='e').forEach(t=>m[t.c]=(m[t.c]||0)+t.a);return Object.entries(m).sort((x,y)=>y[1]-x[1])};
+function status(spent,lim){if(!lim)return 'none';const p=spent/lim;return p>=1?'over':p>=.8?'warn':'ok'}
+const scol={ok:'var(--ok)',warn:'var(--wa)',over:'var(--er)',none:'var(--ac)'};
+
+function parseNL(text){
+ const n=norm(text);let a=parseAmt(text);let d=new Date();
+ if(/προχθες/.test(n))d.setDate(d.getDate()-2);else if(/χθες/.test(n))d.setDate(d.getDate()-1);
+ let note=text.replace(/(\d+(?:[.,]\d{1,2})?)/,'').replace(/ευρώ|ευρω|€|χθες|προχθές|προχθες|σήμερα|σημερα/gi,'').replace(/\s+/g,' ').trim();
+ let c=CATS.find(x=>x.k.some(k=>n.includes(norm(k))));
+ return {a,d:isoLocal(d),note,cat:c?c.id:null,type:c?c.t==='i'?'income':'expense':'expense'};
+}
+
+let ED=null;
+function openSheet(id,pre){
+ const t=id?S.tx.find(x=>x.id===id):null;
+ ED=t?{...t}:{id:null,type:'expense',c:S.last.cat,pm:S.last.pm,d:isoLocal(new Date()),a:0,note:'',m:'',...(pre||{})};
+ if(!t&&ED.type==='income'&&cat(ED.c).t==='e')ED.c='sal';
+ drawSheet(!!t);
+}
+function drawSheet(editing){
+ const t=ED,cs=CATS.filter(c=>c.t===(t.type==='income'?'i':'e'));
+ document.getElementById('ov').innerHTML=`<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sh" role="dialog" aria-label="Κίνηση">
+ ${editing?'':`<div class="f"><div style="display:flex;gap:6px"><input id="nl" placeholder="Γρήγορα: Βενζίνη 60 χθες" aria-label="Γρήγορη εισαγωγή" onkeydown="if(event.key==='Enter')runNL()"><button class="b" style="width:auto" onclick="runNL()">OK</button></div><div class="mu">Η ανάλυση γίνεται τοπικά στη συσκευή. Έλεγξε την προεπισκόπηση πριν την αποθήκευση.</div></div>`}
+ <div class="seg"><button class="${t.type==='expense'?'on':''}" onclick="setType('expense')">Έξοδο</button><button class="${t.type==='income'?'on':''}" onclick="setType('income')">Έσοδο</button></div>
+ <input id="am" class="amt" inputmode="decimal" placeholder="0,00 €" value="${t.a?(t.a/100).toString().replace('.',','):''}" aria-label="Ποσό" oninput="ED.a=parseAmt(this.value)">
+ <div class="chips" role="radiogroup">${cs.map(c=>`<button class="chip ${t.c===c.id?'on':''}" onclick="ED.c='${c.id}';syncF();drawSheet(${editing})">${c.i} ${c.n}</button>`).join('')}</div>
+ <div class="f"><input id="dt" type="datetime-local" value="${t.d}" aria-label="Ημερομηνία" onchange="ED.d=this.value">
+ <select id="pm" aria-label="Τρόπος πληρωμής" onchange="ED.pm=this.value">${PMS.map(p=>`<option ${p===t.pm?'selected':''}>${p}</option>`).join('')}</select>
+ <input id="mr" placeholder="Εμπόρος / Δικαιούχος (προαιρετικό)" value="${esc(t.m)}" oninput="ED.m=this.value">
+ <input id="nt" placeholder="Σημείωση (προαιρετικό)" value="${esc(t.note)}" oninput="ED.note=this.value">
+ <div id="er" class="neg mu"></div>
+ <button class="b" onclick="saveTx()">Αποθήκευση</button>
+ ${editing?`<div style="display:flex;gap:8px"><button class="b g" onclick="dupTx()">Αντίγραφο</button><button class="b d" onclick="delTx()">Διαγραφή</button></div>`:''}</div></div></div>`;
+ if(!editing&&!t.a)setTimeout(()=>{const e=document.getElementById('nl');e&&e.focus()},50);
+}
+function syncF(){['dt','pm','mr','nt'].forEach(i=>{const e=document.getElementById(i);if(!e)return;if(i==='dt')ED.d=e.value;if(i==='pm')ED.pm=e.value;if(i==='mr')ED.m=e.value;if(i==='nt')ED.note=e.value})}
+function setType(ty){syncF();ED.type=ty;ED.c=ty==='income'?'sal':S.last.cat;if(cat(ED.c).t==='i'&&ty==='expense')ED.c='food';drawSheet(!!ED.id)}
+function runNL(){const v=document.getElementById('nl').value.trim();if(!v)return;const p=parseNL(v);syncF();ED.a=p.a;ED.d=p.d;ED.note=p.note;ED.type=p.type;ED.c=p.cat||(p.type==='income'?'othi':'oth');drawSheet(false);toast(p.cat?'Έλεγξε την προεπισκόπηση':'Άγνωστη κατηγορία — επέλεξε χειροκίνητα',!p.cat)}
+function saveTx(){
+ syncF();const e=document.getElementById('er');
+ if(!ED.a||ED.a<=0){e.textContent='Δώσε έγκυρο ποσό μεγαλύτερο από 0.';return}
+ if(ED.a>1e10){e.textContent='Το ποσό είναι πολύ μεγάλο.';return}
+ if(!ED.d||isNaN(new Date(ED.d))){e.textContent='Μη έγκυρη ημερομηνία.';return}
+ const r={id:ED.id||uid(),type:ED.type,a:ED.a,c:ED.c,d:ED.d,pm:ED.pm,note:ED.note.trim().slice(0,200),m:ED.m.trim().slice(0,100)};
+ const i=S.tx.findIndex(x=>x.id===r.id);if(i>=0)S.tx[i]=r;else S.tx.push(r);if(S.user)enq({op:'up',r});
+ if(r.type==='expense')S.last.cat=r.c;S.last.pm=r.pm;
+ save();closeSheet();render();sync();toast('Αποθηκεύτηκε ✓')
+}
+function dupTx(){const c={...ED,id:uid(),d:isoLocal(new Date())};S.tx.push(c);if(S.user)enq({op:'up',r:c});save();closeSheet();render();sync();toast('Δημιουργήθηκε αντίγραφο ✓')}
+function delTx(){if(!confirm('Διαγραφή κίνησης;'))return;const did=ED.id;S.tx=S.tx.filter(x=>x.id!==did);if(S.user)enq({op:'del',id:did});save();closeSheet();render();sync();toast('Διαγράφηκε')}
+function closeSheet(){document.getElementById('ov').innerHTML=''}
+function toast(m,w){const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=m;if(w)d.style.background='var(--wa)';document.body.appendChild(d);setTimeout(()=>d.remove(),2000)}
+
+function txRow(t){const c=cat(t.c);return `<div class="row" tabindex="0" onclick="openSheet('${t.id}')" onkeydown="if(event.key==='Enter')openSheet('${t.id}')"><div class="ico" style="background:${c.c}33">${c.i}</div><div class="grow"><b>${esc(t.m||t.note||c.n)}</b><span class="mu">${c.n} · ${t.pm}</span></div><b class="${t.type==='income'?'pos':''}">${t.type==='income'?'+':'−'}${eur(t.a)}</b></div>`}
+function emptyS(){return `<div class="emp"><div>🪙</div><p>Δεν υπάρχουν κινήσεις ακόμα.</p><button class="b" onclick="openSheet()">Πρόσθεσε την πρώτη κίνηση</button></div>`}
+function bars(data,w=300,h=110){const mx=Math.max(1,...data.map(d=>Math.max(d.e||0,d.i||0)));const bw=w/data.length;
+ return `<svg viewBox="0 0 ${w} ${h+18}" width="100%" role="img">${data.map((d,k)=>{const x=k*bw,eh=(d.e||0)/mx*h,ih=(d.i||0)/mx*h,two='i' in d;
+ return `<g><title>${d.l}: ${eur(d.e||0)}${two?' / '+eur(d.i):''}</title><rect x="${x+bw*.15}" y="${h-eh}" width="${bw*(two?.32:.7)}" height="${eh}" rx="4" fill="var(--ac)"/>${two?`<rect x="${x+bw*.5}" y="${h-ih}" width="${bw*.32}" height="${ih}" rx="4" fill="var(--ok)"/>`:''}<text x="${x+bw/2}" y="${h+13}" font-size="10" text-anchor="middle" fill="var(--mu)">${d.l}</text></g>`}).join('')}</svg>`}
+
+function home(){
+ const k=curM(),a=inM(k),pa=inM(addM(k,-1)),sp=sum(a,'expense'),inc=sum(a,'income'),psp=sum(pa,'expense');
+ const rem=S.budget?S.budget-sp:null,diff=psp?Math.round((sp-psp)/psp*100):null;
+ const days=[...Array(7)].map((_,j)=>{const d=new Date();d.setDate(d.getDate()-6+j);const ds=isoLocal(d).slice(0,10);return {l:d.toLocaleDateString('el-GR',{weekday:'short'}).slice(0,3),e:S.tx.filter(t=>t.type==='expense'&&t.d.slice(0,10)===ds).reduce((s,t)=>s+t.a,0)}});
+ const warns=CATS.filter(c=>S.cb[c.id]).map(c=>({c,s:byCat(a).find(x=>x[0]===c.id)?.[1]||0})).filter(x=>status(x.s,S.cb[x.c.id])!=='ok').map(x=>`<div class="mu" style="color:${scol[status(x.s,S.cb[x.c.id])]}">${x.c.i} ${x.c.n}: ${Math.round(x.s/S.cb[x.c.id]*100)}% του budget ${x.s>=S.cb[x.c.id]?'(ξεπεράστηκε)':'(κοντά στο όριο)'}</div>`).join('');
+ const bs=status(sp,S.budget);
+ return `<div class="cr">an app by Sargentis Dimosthenis</div><h1>Αρχική</h1><div class="mu" style="margin:-8px 0 12px">${mname(k)} · ${stat()}</div>
+ <div class="grid"><div class="card"><div class="lbl">Έξοδα μήνα</div><div class="big">${eur(sp)}</div><div class="mu">${diff===null?'Χωρίς προηγούμενο μήνα':`${diff>0?'▲':'▼'} ${Math.abs(diff)}% vs προηγ.`}</div></div>
+ <div class="card"><div class="lbl">Έσοδα μήνα</div><div class="big pos">${eur(inc)}</div></div>
+ <div class="card"><div class="lbl">Υπόλοιπο budget</div><div class="big" style="color:${scol[bs]}">${rem===null?'—':eur(rem)}</div>${S.budget?`<div class="bar"><i style="width:${Math.min(100,sp/S.budget*100)}%;background:${scol[bs]}"></i></div>`:`<div class="mu">Όρισε στις Ρυθμίσεις</div>`}</div>
+ <div class="card"><div class="lbl">Αποταμίευση</div><div class="big ${inc-sp<0?'neg':''}">${eur(inc-sp)}</div></div></div>
+ ${warns?`<div class="card" style="margin-top:10px"><b>Προσοχή στα budgets</b>${warns}</div>`:''}
+ ${S.tx.length?`<h2>Τελευταίες 7 ημέρες</h2><div class="card">${bars(days)}</div>
+ <h2>Ανά κατηγορία</h2><div class="card">${byCat(a).slice(0,5).map(([id,v])=>{const c=cat(id);return `<div style="margin:8px 0"><div style="display:flex;justify-content:space-between"><span>${c.i} ${c.n}</span><b>${eur(v)}</b></div><div class="bar"><i style="width:${sp?v/sp*100:0}%;background:${c.c}"></i></div></div>`}).join('')||'<div class="mu">Κανένα έξοδο αυτόν τον μήνα.</div>'}</div>
+ <h2>Πρόσφατες κινήσεις</h2><div class="card">${[...S.tx].sort((x,y)=>y.d.localeCompare(x.d)).slice(0,5).map(txRow).join('')}</div>`:`<div class="card" style="margin-top:10px">${emptyS()}<div style="text-align:center"><button class="b g" style="width:auto" onclick="demo()">Φόρτωση δεδομένων επίδειξης</button></div></div>`}
+ <div class="mu" style="margin-top:10px">Επαναλαμβανόμενες πληρωμές: δεν περιλαμβάνονται σε αυτή την έκδοση.</div>`}
+
+function txPage(){
+ const q=norm(S.q);let l=S.tx.filter(t=>(S.ft==='all'||t.type===S.ft)&&(S.fc==='all'||t.c===S.fc)&&(!q||norm(t.note+' '+t.m).includes(q)));
+ l.sort(S.sort==='amount'?(x,y)=>y.a-x.a:(x,y)=>y.d.localeCompare(x.d));
+ const lim=S.lim||40,shown=l.slice(0,lim);
+ let h='';if(S.sort==='date'){const g={};shown.forEach(t=>(g[t.d.slice(0,10)]=g[t.d.slice(0,10)]||[]).push(t));
+  h=Object.entries(g).map(([d,a])=>{const net=sum(a,'income')-sum(a,'expense');return `<h2 style="display:flex;justify-content:space-between"><span>${new Date(d+'T12:00').toLocaleDateString('el-GR',{weekday:'long',day:'numeric',month:'long'})}</span><span>${eur(net)}</span></h2><div class="card">${a.map(txRow).join('')}</div>`}).join('')}
+ else h=`<div class="card">${shown.map(txRow).join('')}</div>`;
+ return `<h1>Κινήσεις</h1><div class="f"><input type="search" placeholder="Αναζήτηση σε σημείωση ή εμπόρο" value="${esc(S.q)}" aria-label="Αναζήτηση" onchange="S.q=this.value;S.lim=40;render()">
+ <div style="display:flex;gap:6px"><select aria-label="Τύπος" onchange="S.ft=this.value;render()"><option value="all">Όλα</option><option value="expense" ${S.ft==='expense'?'selected':''}>Έξοδα</option><option value="income" ${S.ft==='income'?'selected':''}>Έσοδα</option></select>
+ <select aria-label="Κατηγορία" onchange="S.fc=this.value;render()"><option value="all">Κατηγορίες</option>${CATS.map(c=>`<option value="${c.id}" ${S.fc===c.id?'selected':''}>${c.i} ${c.n}</option>`).join('')}</select>
+ <select aria-label="Ταξινόμηση" onchange="S.sort=this.value;render()"><option value="date">Ημερομηνία</option><option value="amount" ${S.sort==='amount'?'selected':''}>Ποσό</option></select></div></div>
+ ${l.length?h:(S.tx.length?'<div class="emp">Κανένα αποτέλεσμα.</div>':emptyS())}
+ ${l.length>lim?`<button class="b g" onclick="S.lim=${lim+40};render()">Περισσότερα (${l.length-lim})</button>`:''}
+ ${l.length?`<div style="margin-top:10px"><button class="b g" onclick="copyCSV()">Αντιγραφή CSV (${l.length} κινήσεις)</button></div>`:''}`}
+function csvOf(l){const q=v=>'"'+String(v||'').replace(/"/g,'""')+'"';return 'date,type,category,amount_eur,payment,merchant,note\n'+l.map(t=>[t.d,t.type,cat(t.c).n,(t.a/100).toFixed(2),t.pm,t.m,t.note].map(q).join(',')).join('\n')}
+function copyCSV(){const q=norm(S.q);const l=S.tx.filter(t=>(S.ft==='all'||t.type===S.ft)&&(S.fc==='all'||t.c===S.fc)&&(!q||norm(t.note+' '+t.m).includes(q)));
+ navigator.clipboard.writeText(csvOf(l)).then(()=>toast('CSV αντιγράφηκε ✓'),()=>toast('Αποτυχία αντιγραφής',true))}
+
+function stats(){
+ const k=curM(),ms=[...Array(S.range)].map((_,j)=>addM(k,j-S.range+1)),a=S.tx.filter(t=>ms.includes(mkey(t.d)));
+ const e=sum(a,'expense'),i=sum(a,'income');const first=new Date(ms[0]+'-01'),days=Math.max(1,Math.ceil((Date.now()-first)/864e5));
+ const six=[...Array(6)].map((_,j)=>{const m=addM(k,j-5),x=inM(m);return {l:mname(m).slice(0,3),e:sum(x,'expense'),i:sum(x,'income')}});
+ const top=a.filter(t=>t.type==='expense').sort((x,y)=>y.a-x.a).slice(0,5);
+ return `<h1>Στατιστικά</h1><select aria-label="Περίοδος" onchange="S.range=+this.value;render()">${[1,3,6,12].map(n=>`<option value="${n}" ${S.range===n?'selected':''}>Τελευταίοι ${n} μήνες</option>`).join('')}</select>
+ ${a.length?`<div class="grid" style="margin-top:10px"><div class="card"><div class="lbl">Μέσος ημερήσιος</div><div class="big">${eur(Math.round(e/days))}</div></div><div class="card"><div class="lbl">Ποσοστό αποταμίευσης</div><div class="big">${i>0?Math.round((i-e)/i*100)+'%':'—'}</div></div></div>
+ <h2>Έσοδα (πράσινο) vs έξοδα (μωβ)</h2><div class="card">${bars(six)}</div>
+ <h2>Ανά κατηγορία</h2><div class="card">${byCat(a).map(([id,v])=>{const c=cat(id);return `<div style="margin:8px 0"><div style="display:flex;justify-content:space-between"><span>${c.i} ${c.n} <span class="mu">${e?Math.round(v/e*100):0}%</span></span><b>${eur(v)}</b></div><div class="bar"><i style="width:${v/e*100}%;background:${c.c}"></i></div></div>`}).join('')}</div>
+ <h2>Μεγαλύτερα έξοδα</h2><div class="card">${top.map(txRow).join('')||'<div class="mu">Κανένα.</div>'}</div>`:'<div class="card">'+emptyS()+'</div>'}`}
+
+function settings(){
+ const k=curM(),sp=Object.fromEntries(byCat(inM(k)));
+ return `<h1>Ρυθμίσεις</h1>${acct()}
+ <h2>Θέμα</h2><select aria-label="Θέμα" onchange="S.theme=this.value;save();applyTheme()">${[['dark','Σκούρο'],['light','Φωτεινό'],['system','Σύστημα']].map(x=>`<option value="${x[0]}" ${S.theme===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select>
+ <h2>Μηνιαίο budget (€)</h2><input inputmode="decimal" placeholder="π.χ. 1200" value="${S.budget?S.budget/100:''}" aria-label="Συνολικό budget" onchange="setBud('overall',this.value)">
+ <h2>Budget ανά κατηγορία</h2><div class="card">${CATS.filter(c=>c.t==='e').map(c=>{const b=S.cb[c.id]||0,s=sp[c.id]||0,st=status(s,b);return `<div style="margin:10px 0"><div style="display:flex;align-items:center;gap:8px"><span class="grow">${c.i} ${c.n}</span><input style="width:90px;padding:8px" inputmode="decimal" placeholder="€" value="${b?b/100:''}" aria-label="Budget ${c.n}" onchange="setBud('${c.id}',this.value)"></div>${b?`<div class="bar"><i style="width:${Math.min(100,s/b*100)}%;background:${scol[st]}"></i></div><div class="mu" style="color:${scol[st]}">${eur(s)} από ${eur(b)} · ${Math.round(s/b*100)}%${st==='over'?' · Ξεπεράστηκε':st==='warn'?' · Κοντά στο όριο':''}</div>`:''}</div>`}).join('')}</div>
+ <h2>Δεδομένα</h2><div class="f">${S.user?'':`<button class="b g" onclick="demo()">Προσθήκη δεδομένων επίδειξης</button>`}<button class="b g" onclick="copyAll()">Αντιγραφή όλων σε CSV</button>${S.user?'':`<button class="b d" onclick="if(confirm('Διαγραφή ΟΛΩΝ των δεδομένων;')){S.tx=[];S.budget=0;S.cb={};save();render()}">Διαγραφή όλων των δεδομένων</button>`}</div>
+ <div class="mu">Νόμισμα: EUR · Γλώσσα: Ελληνικά. Εισαγωγή CSV, αρχεία εξαγωγής και επαναλαμβανόμενες κινήσεις δεν περιλαμβάνονται σε αυτή την έκδοση.</div>`}
+function copyAll(){navigator.clipboard.writeText(csvOf(S.tx)).then(()=>toast('CSV αντιγράφηκε ✓'),()=>toast('Αποτυχία αντιγραφής',true))}
+function demo(){if(S.user){toast('Τα δεδομένα επίδειξης δεν προστίθενται σε λογαριασμό cloud',true);return}const s=[['food',350,'Καφές'],['groc',4200,'Σούπερ Μάρκετ'],['fuel',6000,'Βενζίνη'],['subs',1299,'Netflix'],['fun',2500,'Σινεμά'],['home',8500,'ΔΕΗ'],['health',1800,'Φαρμακείο'],['trans',1200,'Ταξί'],['shop',5900,'Ρούχα'],['food',1850,'Ταβέρνα']];
+ for(let m=0;m<4;m++){S.tx.push({id:uid(),type:'income',a:150000,c:'sal',d:isoLocal(new Date(new Date().getFullYear(),new Date().getMonth()-m,1,9,0)),pm:'Τραπεζική μεταφορά',note:'Μισθός',m:''});
+  s.forEach((x,j)=>{const d=new Date();d.setMonth(d.getMonth()-m);d.setDate(Math.max(1,Math.min(d.getDate(),28)-j%9));S.tx.push({id:uid(),type:'expense',a:Math.round(x[1]*(.8+Math.random()*.5)),c:x[0],d:isoLocal(d),pm:PMS[j%2],note:x[2],m:''})})}
+ if(!S.budget)S.budget=90000;save();render();toast('Προστέθηκαν δεδομένα επίδειξης')}
+
+
+/* ===== Cloud (Supabase) ===== */
+const SB='https://uzzsvagebzswwjjwrtyt.supabase.co',KEY='sb_publishable_BnqkBF1S9c8KKBOPsD4npA_nLSgsf7z';
+let busy=false;
+async function api(path,o={},useAuth=true){
+ const h={apikey:KEY,'Content-Type':'application/json',...(o.h||{})};
+ if(useAuth){await ensureTok();h.Authorization='Bearer '+S.sess.at}
+ const r=await fetch(SB+path,{method:o.m||'GET',headers:h,body:o.b?JSON.stringify(o.b):undefined});
+ if(!r.ok){const t=await r.text();const e=new Error(t||String(r.status));e.status=r.status;throw e}
+ return (r.headers.get('content-type')||'').includes('json')?r.json():null}
+function setSess(d){S.sess={at:d.access_token,rt:d.refresh_token,exp:d.expires_at||Math.floor(Date.now()/1000)+d.expires_in};save()}
+async function ensureTok(){const s=S.sess;if(!s){const e=new Error('no session');e.status=401;throw e}
+ if(s.exp-60>Date.now()/1000)return;
+ const d=await api('/auth/v1/token?grant_type=refresh_token',{m:'POST',b:{refresh_token:s.rt}},false);setSess(d)}
+function errMsg(x){try{const j=JSON.parse(x.message);const m=j.msg||j.error_description||j.message||j.error||'';
+ return /Invalid login/i.test(m)?'Λάθος email ή κωδικός':/not confirmed/i.test(m)?'Επιβεβαίωσε πρώτα το email σου':/already/i.test(m)?'Το email υπάρχει ήδη — πάτα Σύνδεση':m||'Σφάλμα'}catch(e){return navigator.onLine?'Σφάλμα σύνδεσης':'Είσαι εκτός σύνδεσης'}}
+const pid=x=>x.op==='bud'?'b:'+x.k:'t:'+(x.r?x.r.id:x.id);
+function enq(p){S.pend=S.pend.filter(x=>pid(x)!==pid(p));S.pend.push(p);save()}
+function setBud(k,v){const c=parseAmt(v);if(k==='overall')S.budget=c;else S.cb[k]=c;if(S.user)enq({op:'bud',k,v:c});save();render();sync()}
+const toRow=r=>({id:r.id,type:r.type,amount_cents:r.a,category_key:r.c,occurred_at:new Date(r.d).toISOString(),payment_method:r.pm,merchant:r.m||'',note:r.note||''});
+const fromRow=x=>({id:x.id,type:x.type,a:Number(x.amount_cents),c:x.category_key,d:isoLocal(new Date(x.occurred_at)),pm:x.payment_method,m:x.merchant||'',note:x.note||''});
+const UP={m:'POST',h:{Prefer:'resolution=merge-duplicates,return=minimal'}};
+async function flush(){
+ while(S.pend.length){
+  const p=S.pend[0];
+  if(p.op==='up'){const ups=[];for(const x of S.pend){if(x.op!=='up'||ups.length>=200)break;ups.push(x)}
+   await api('/rest/v1/transactions?on_conflict=id',{...UP,b:ups.map(x=>toRow(x.r))});S.pend.splice(0,ups.length)}
+  else if(p.op==='del'){await api('/rest/v1/transactions?id=eq.'+encodeURIComponent(p.id),{m:'DELETE'});S.pend.shift()}
+  else{await api('/rest/v1/budgets?on_conflict=user_id,category_key',{...UP,b:{category_key:p.k,amount_cents:p.v}});S.pend.shift()}
+  save()}}
+async function pull(){
+ let all=[],o=0;
+ for(;;){const r=await api(`/rest/v1/transactions?select=*&order=occurred_at.desc,id.asc&limit=1000&offset=${o}`);all=all.concat(r);if(r.length<1000)break;o+=1000}
+ const b=await api('/rest/v1/budgets?select=category_key,amount_cents');
+ S.tx=all.map(fromRow);S.budget=0;S.cb={};
+ b.forEach(x=>{if(x.category_key==='overall')S.budget=Number(x.amount_cents);else S.cb[x.category_key]=Number(x.amount_cents)})}
+async function sync(){
+ if(!S.user||!S.sess||busy||!navigator.onLine)return;
+ busy=true;render();
+ try{await flush();await pull();S.err=''}
+ catch(x){console.error(x);
+  if(x.status===401||(x.status===400&&/refresh|token|JWT/i.test(x.message))){S.sess=null;S.err=''}
+  else S.err='Σφάλμα συγχρονισμού: '+errMsg(x).slice(0,80)}
+ busy=false;save();render()}
+async function auth(kind){
+ const e=document.getElementById('em').value.trim(),p=document.getElementById('pw').value;
+ if(!e||p.length<6){toast('Email και κωδικός (τουλ. 6 χαρακτήρες)',true);return}
+ try{
+  const d=await api(kind==='up'?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{m:'POST',b:{email:e,password:p}},false);
+  if(!d.access_token){toast('Έλεγξε το email σου για επιβεβαίωση και μετά πάτα Σύνδεση');return}
+  setSess(d);S.user=e;S.err='';
+  if(!S.mig){S.mig=true;
+   if(S.tx.length&&confirm(`Να ανέβουν ${S.tx.length} τοπικές κινήσεις στο cloud;\n\nΟΚ = ανέβασμα\nΆκυρο = οι τοπικές θα αντικατασταθούν από τα δεδομένα του cloud.`)){
+    S.tx.forEach(r=>enq({op:'up',r}));
+    if(S.budget)enq({op:'bud',k:'overall',v:S.budget});
+    Object.entries(S.cb).forEach(([k,v])=>{if(v)enq({op:'bud',k,v})})}}
+  save();await sync();toast('Συνδέθηκες ✓')
+ }catch(x){toast(errMsg(x),true)}}
+function signout(){
+ if(S.pend.length&&!confirm(`${S.pend.length} αλλαγές δεν έχουν ανέβει ακόμα και θα χαθούν. Συνέχεια;`))return;
+ if(!confirm('Αποσύνδεση; Τα τοπικά αντίγραφα θα σβηστούν από αυτή τη συσκευή· τα δεδομένα μένουν στο cloud.'))return;
+ const t=S.sess&&S.sess.at;if(t)fetch(SB+'/auth/v1/logout',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+t}}).catch(()=>{});
+ S.user=null;S.sess=null;S.pend=[];S.mig=false;S.tx=[];S.budget=0;S.cb={};S.err='';save();render()}
+function stat(){
+ if(!S.user)return '💾 Τοπικά μόνο';if(!S.sess)return '⚠️ Απαιτείται σύνδεση';if(busy)return '⏳ Συγχρονισμός…';
+ if(S.err)return '⚠️ '+S.err;if(!navigator.onLine)return `📴 Εκτός σύνδεσης${S.pend.length?' · '+S.pend.length+' εκκρεμούν':''}`;
+ if(S.pend.length)return `⏳ ${S.pend.length} εκκρεμούν`;return '☁️ Συγχρονισμένο'}
+function acct(){
+ if(S.user&&S.sess)return `<div class="card"><b>☁️ Λογαριασμός cloud</b><div class="mu">${esc(S.user)}</div><div style="margin:6px 0">${stat()}</div><div class="mu">Τα δεδομένα αποθηκεύονται στη βάση σου και συγχρονίζονται σε κάθε συσκευή. Αλλαγές χωρίς internet μένουν σε ουρά και ανεβαίνουν όταν επανέλθει η σύνδεση.${S.ok?'':' <b>ΠΡΟΣΟΧΗ: η τοπική αποθήκευση απέτυχε</b>'}</div><div class="f"><button class="b g" onclick="sync()">Συγχρονισμός τώρα</button><button class="b d" onclick="signout()">Αποσύνδεση</button></div></div>`;
+ return `<div class="card"><b>💾 Τοπική λειτουργία</b><div class="mu">Τα δεδομένα είναι μόνο σε αυτή τη συσκευή (χωρίς cloud).${S.user?' Η συνεδρία έληξε — συνδέσου ξανά. '+S.pend.length+' εκκρεμείς αλλαγές θα ανέβουν.':' Συνδέσου για αποθήκευση στο cloud.'}${S.ok?'':' <b>ΠΡΟΣΟΧΗ: η τοπική αποθήκευση απέτυχε</b>'}</div><div class="f"><input id="em" type="email" autocomplete="email" placeholder="Email" aria-label="Email" value="${esc(S.user||'')}"><input id="pw" type="password" autocomplete="current-password" placeholder="Κωδικός (τουλ. 6 χαρακτήρες)" aria-label="Κωδικός"><button class="b" onclick="auth('in')">Σύνδεση</button><button class="b g" onclick="auth('up')">Δημιουργία λογαριασμού</button></div></div>`}
+
+const TABS=[['home','🏠','Αρχική'],['tx','🧾','Κινήσεις'],null,['stats','📊','Στατιστικά'],['set','⚙️','Ρυθμίσεις']];
+function render(){
+ const v={home,tx:txPage,stats,set:settings}[S.tab]();
+ document.getElementById('app').innerHTML=v+`<nav aria-label="Κύρια πλοήγηση">${TABS.map(t=>t?`<button class="${S.tab===t[0]?'on':''}" aria-current="${S.tab===t[0]}" onclick="S.tab='${t[0]}';save();render();scrollTo(0,0)"><span>${t[1]}</span>${t[2]}</button>`:'<div class="sp"></div>').join('')}</nav><button class="fab" aria-label="Νέα κίνηση" onclick="openSheet()">+</button>`}
+applyTheme();S.err='';render();if(S.user)sync();addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
+</script></body></html>
